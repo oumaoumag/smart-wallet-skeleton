@@ -5,5 +5,11 @@ import {Test, console} from "forge-std/Test.sol";
 import {SmartWallet} from "../src/Smart_Wallet.sol";
 
 contract MockContract {
+    uint256 public value;
     
+    function setValue(uint256 _value) external payable {
+        value = _value;
+    }
+    
+    receive() external payable {}
 }
