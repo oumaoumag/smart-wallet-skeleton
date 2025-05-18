@@ -43,5 +43,13 @@ contract SmartWallet {
         require(success, "Call failed");
     }
 
-
+    // Simulate validation of a UserOperation as per EIP-4337
+    function validateUserOp(UserOperation memory op, bytes memory signature) public view returns (bool) {
+        if (op.nonce != nonce) {
+            return false; // Ensure nonce matches to prevent replays
+        }
+        // Simulate signature validation: return true if signature exists
+        // In a real implementation, this would verify the signature against the owner
+        return signature.length > 0;
+    }
 }
