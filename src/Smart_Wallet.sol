@@ -28,13 +28,13 @@ contract SmartWallet {
     }
 
     // Execute multipe calls in one transaction (Bonus Feature)
-    function executeBatch(address [] calldata to, uint256[] calldata value, bytes[] calldata data) external {
+    function executeBatch(address[] calldata to, uint256[] calldata value, bytes[] calldata data) external {
         require(msg.sender == owner, "Only Owner can execute");
         require(to.length == value.length && to.length == data.length, "Array lengths mismatch");
         for (uint i = 0; i < to.length; i++) {
-            _call(to[i], value[i]); // Perform each call
+            _call(to[i], value[i], data[i]); // Fixed: Added the data parameter
         }
-        nonce++;    // Increament nonce once after batch execution
+        nonce++;    // Increment nonce once after batch execution
     }
     
     // Internal helper function to perform a call
