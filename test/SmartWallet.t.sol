@@ -13,3 +13,8 @@ contract MockContract {
     
     receive() external payable {}
 }
+
+contract SmartWalletTest is Test {
+    SmartWallet public wallet;
+  
+}
