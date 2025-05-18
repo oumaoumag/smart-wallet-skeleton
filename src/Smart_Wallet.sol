@@ -13,4 +13,10 @@ contract SmartWallet {
         bytes data;     // Calldata for the call
         uint256 nonce;  // Nonce for this operation
     }
+
+    // Contructor sets the initial owner 
+    constructor(address _owner) {
+        owner = _owner;
+        nonce = 0;
+    }
 }
