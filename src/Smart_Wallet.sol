@@ -9,7 +9,7 @@ contract SmartWallet {
     // Struct to represent a UserOperation, simulating EIP-4337
     struct UserOperation {
         address to;     // Target address to call
-        uint256 values; // ETH value to send
+        uint256 value;  // Changed from 'values' to 'value' to match test usage
         bytes data;     // Calldata for the call
         uint256 nonce;  // Nonce for this operation
     }
