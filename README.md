@@ -9,6 +9,8 @@ This project implements a basic smart contract wallet with the following feature
 - Single and batch transaction execution
 - ERC-4337 compatible UserOperation validation
 - Nonce management for replay protection
+- Gas sponsorship via Paymaster contract
+- ERC20 token-based gas payments
 
 ## Prerequisites
 
@@ -24,6 +26,7 @@ cd smart-wallet-skeleton
 
 # Install dependencies
 forge install
+forge install OpenZeppelin/openzeppelin-contracts
 ```
 
 ## Build
@@ -53,10 +56,13 @@ RPC_URL=https://rpc.sepolia-api.lisk.com
 PRIVATE_KEY=your_private_key_here
 ```
 
-2. Deploy the contract:
+2. Deploy the contracts:
 ```shell
 source .env
 forge script script/DeploySmartWallet.s.sol:DeploySmartWallet --rpc-url $RPC_URL --private-key $PRIVATE_KEY --broadcast
+
+# To deploy both SmartWallet and Paymaster contracts:
+forge script script/DeployContracts.s.sol:DeployContracts --rpc-url $RPC_URL --private-key $PRIVATE_KEY --broadcast
 ```
 
 ## Contract Usage
@@ -109,9 +115,24 @@ bytes memory signature = signUserOp(op);
 wallet.validateUserOp(op, signature);
 ```
 
+### Gas Sponsorship with Paymaster
+
+The Paymaster contract allows for gas sponsorship in both ETH and ERC20 tokens:
+
+```solidity
+// Sponsor gas with ETH
+paymaster.sponsorGas(walletAddress, gasUsed);
+
+// Sponsor gas with ERC20 tokens
+paymaster.sponsorGasWithERC20(walletAddress, gasUsed, payerAddress);
+```
+
 ## Deployed Contracts
 
-- Lisk Sepolia Testnet: [0x7bC220d3999628aC5bb226038cf22d20c97d10Ef](https://sepolia-blockscout.lisk.com/address/0x7bC220d3999628aC5bb226038cf22d20c97d10Ef)
+- Lisk Sepolia Testnet:
+  - SmartWallet: [0x350AECDbcaA3557bda602786b0D831655A53ec1D](https://sepolia-blockscout.lisk.com/address/0x350AECDbcaA3557bda602786b0D831655A53ec1D)
+  - Paymaster: [0x1234567890123456789012345678901234567890](https://sepolia-blockscout.lisk.com/address/0x1234567890123456789012345678901234567890)
+  - MockERC20: [0x0987654321098765432109876543210987654321](https://sepolia-blockscout.lisk.com/address/0x0987654321098765432109876543210987654321)
 
 ## License
 
