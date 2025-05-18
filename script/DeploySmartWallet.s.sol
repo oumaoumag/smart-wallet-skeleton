@@ -2,25 +2,27 @@
 pragma solidity ^0.8.13;
 
 import {Script, console} from "forge-std/Script.sol";
-import {SmartWallet} from "../src/Smart_Wallet.sol";
+import {SmartWallet, Paymaster} from "../src/Smart_Wallet.sol";
 
-contract DeploySmartWallet is Script {
+contract DeployContracts is Script {
     function run() public {
-        // Load the private key from the environment variable
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+        address owner = vm.addr(deployerPrivateKey);
         
-        // Start broadcasting transactions
+        // ERC20 token address for the Paymaster (replace with actual token address)
+        address erc20Token = address(0x123...); // Example token address
+        uint256 tokensPerGas = 1e15; // Example: 0.001 tokens per gas unit
+        
         vm.startBroadcast(deployerPrivateKey);
         
-        // Deploy the smart wallet with the deployer as the owner
-        address owner = vm.addr(deployerPrivateKey);
+        // Deploy SmartWallet
         SmartWallet wallet = new SmartWallet(owner);
-        
-        // Log the deployed address
         console.log("Smart Wallet deployed at:", address(wallet));
-        console.log("Owner address:", owner);
         
-        // Stop broadcasting transactions
+        // Deploy Paymaster
+        Paymaster paymaster = new Paymaster(erc20Token, tokensPerGas);
+        console.log("Paymaster deployed at:", address(paymaster));
+        
         vm.stopBroadcast();
     }
 }
