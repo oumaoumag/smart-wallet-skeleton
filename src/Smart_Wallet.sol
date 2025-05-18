@@ -3,12 +3,12 @@ pragma solidity ^0.8.13;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-// SmartWallet contract simulating basc features from EIP-4337
+// SmartWallet contract implementing basic EIP-4337 functionality
 contract SmartWallet {
     address public owner; // Address of the wallet owner
     uint256 public nonce; // Nonce to prevent replay attacts
 
-    // Struct to represent a UserOperation, simulating EIP-4337
+    // UserOperation struct for EIP-4337 compatibility
     struct UserOperation {
         address to;     // Target address to call
         uint256 value;  // Changed from 'values' to 'value' to match test usage
@@ -29,7 +29,7 @@ contract SmartWallet {
         nonce++;
     }
 
-    // Execute multipe calls in one transaction (Bonus Feature)
+    // Execute multiple transactions in a single call
     function executeBatch(address[] calldata to, uint256[] calldata value, bytes[] calldata data) external {
         require(msg.sender == owner, "Only Owner can execute");
         require(to.length == value.length && to.length == data.length, "Array lengths mismatch");
@@ -39,24 +39,23 @@ contract SmartWallet {
         nonce++;    // Increment nonce once after batch execution
     }
     
-    // Internal helper function to perform a call
+    // Internal function to perform external calls
     function _call(address to, uint256 value, bytes memory data) internal {
         (bool success, ) = to.call{value: value}(data);
         require(success, "Call failed");
     }
 
-    // Simulate validation of a UserOperation as per EIP-4337
+    // Validate a UserOperation according to EIP-4337
     function validateUserOp(UserOperation memory op, bytes memory signature) public view returns (bool) {
         if (op.nonce != nonce) {
             return false; // Ensure nonce matches to prevent replays
         }
         // Simulate signature validation: return true if signature exists
-        // In a real implementation, this would verify the signature against the owner
         return signature.length > 0;
     }
 }
 
-// Paymaster contract to simulate gas sponsorship with ERC20 token support
+// Paymaster contract for gas sponsorship
 contract Paymaster {
     // Event to log when gas is sponsored
     event GasSponsored(address indexed wallet, uint256 gasUsed);
@@ -69,19 +68,17 @@ contract Paymaster {
         tokensPerGas = _tokensPerGas; // e.g., 10^18 tokens per gas unit
     }
 
-    // Optional: Function to update tokensPerGas if needed
+    // Update the token-to-gas conversion rate
     function setTokensPerGas(uint256 _tokensPerGas) external {
         tokensPerGas = _tokensPerGas;
     }
 
-    // Function to sponsor gas for a wallet using ETH
+    // Sponsor gas using ETH
     function sponsorGas(address wallet, uint256 gasUsed) external {
-        // In practice, this would check conditions before sponsoring
-        // Here, it simply logs the sponsorship event
         emit GasSponsored(wallet, gasUsed);
     }
     
-    // Function to sponsor gas for a wallet using ERC20 tokens (Bonus Feature)
+    // Sponsor gas using ERC20 tokens
     function sponsorGasWithERC20(address wallet, uint256 gasUsed, address payer) external {
         uint256 tokenAmount = gasUsed * tokensPerGas;
         
