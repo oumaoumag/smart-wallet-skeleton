@@ -16,5 +16,9 @@ contract MockContract {
 
 contract SmartWalletTest is Test {
     SmartWallet public wallet;
-  
+    MockContract public mockContract;
+    address owner = address(0x1);
+    address nonOwner = address(0x2);
+
+   
 }
