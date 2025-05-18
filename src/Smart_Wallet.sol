@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.13;
 
 // SmartWallet contract simulating basc features from EIP-4337
 contract SmartWallet {
@@ -37,4 +37,11 @@ contract SmartWallet {
         nonce++;    // Increament nonce once after batch execution
     }
     
+    // Internal helper function to perform a call
+    function _call(address to, uint256 value, bytes memory data) internal {
+        (bool success, ) = to.call{value: value}(data);
+        require(success, "Call failed");
+    }
+
+
 }
