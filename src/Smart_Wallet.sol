@@ -22,9 +22,9 @@ contract SmartWallet {
 
     // Execute a single call to another contract or send ETH, restricted to owner
     function execute(address to, uint256 value, bytes calldata data) external {
-        require(msg.sender == owner, "Only  Owner can execute");
-        _call(to, value, data);     // Perform the call
-        nonce++;                    // Increment nonce after successful execution
+        require(msg.sender == owner, "Only Owner can execute"); // Remove the extra space if it exists
+        _call(to, value, data);
+        nonce++;
     }
 
     // Execute multipe calls in one transaction (Bonus Feature)
