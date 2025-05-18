@@ -28,6 +28,9 @@ contract SmartWalletTest is Test {
     address owner = address(0x1);
     address user = address(0x2);
     
+    // Define the event here to match the one in the Paymaster contract
+    event GasSponsored(address indexed wallet, uint256 gasUsed);
+    
     function setUp() public {
         // Fund the owner and user with ETH
         vm.deal(owner, 10 ether);
@@ -193,7 +196,7 @@ contract SmartWalletTest is Test {
         uint256 gasUsed = 100000;
         
         vm.expectEmit(true, true, true, true);
-        emit Paymaster.GasSponsored(address(wallet), gasUsed);
+        emit GasSponsored(address(wallet), gasUsed);
         
         paymaster.sponsorGas(address(wallet), gasUsed);
     }
@@ -204,7 +207,7 @@ contract SmartWalletTest is Test {
         uint256 initialBalance = mockToken.balanceOf(user);
         
         vm.expectEmit(true, true, true, true);
-        emit Paymaster.GasSponsored(address(wallet), gasUsed);
+        emit GasSponsored(address(wallet), gasUsed);
         
         vm.prank(user);
         paymaster.sponsorGasWithERC20(address(wallet), gasUsed, user);
