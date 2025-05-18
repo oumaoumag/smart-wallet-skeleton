@@ -20,5 +20,14 @@ contract SmartWalletTest is Test {
     address owner = address(0x1);
     address nonOwner = address(0x2);
 
+    function setUp() public {
+        // Fund the owner with ETH
+        vm.deal(owner, 10 ether);
+        
+        // Deploy contracts
+        wallet = new SmartWallet(owner);
+        mockContract = new MockContract();
+    }
+
    
 }
