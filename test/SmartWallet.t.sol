@@ -45,5 +45,15 @@ contract SmartWalletTest is Test {
         assertEq(address(mockContract).balance, 0.1 ether);
         assertEq(wallet.nonce(), 1);
     }
-   
+    
+    function test_ExecuteRevertNonOwner() public {
+        bytes memory callData = abi.encodeWithSelector(MockContract.setValue.selector, 42);
+        
+        // Try to execute as non-owner
+        vm.prank(nonOwner);
+        vm.expectRevert("Only Owner can execute");
+        wallet.execute(address(mockContract), 0.1 ether, callData);
+    }
+    
+    
 }
