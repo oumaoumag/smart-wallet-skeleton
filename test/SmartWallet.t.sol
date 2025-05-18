@@ -29,5 +29,21 @@ contract SmartWalletTest is Test {
         mockContract = new MockContract();
     }
 
+    function test_Execute() public {
+        // Prepare call data for the mock contract
+        bytes memory callData = abi.encodeWithSelector(MockContract.setValue.selector, 42);
+        
+        // Fund the wallet
+        vm.deal(address(wallet), 1 ether);
+        
+        // Execute as owner
+        vm.prank(owner);
+        wallet.execute(address(mockContract), 0.1 ether, callData);
+        
+        // Verify results
+        assertEq(mockContract.value(), 42);
+        assertEq(address(mockContract).balance, 0.1 ether);
+        assertEq(wallet.nonce(), 1);
+    }
    
 }
