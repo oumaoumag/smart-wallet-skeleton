@@ -98,5 +98,14 @@ contract SmartWalletTest is Test {
         wallet.executeBatch(targets, values, callData);
     }
     
-    
+    function test_ExecuteBatchRevertArrayMismatch() public {
+        address[] memory targets = new address[](2);
+        uint256[] memory values = new uint256[](1);
+        bytes[] memory callData = new bytes[](2);
+        
+        // Try to execute with mismatched array lengths
+        vm.prank(owner);
+        vm.expectRevert("Array lengths mismatch");
+        wallet.executeBatch(targets, values, callData);
+    }
 }
