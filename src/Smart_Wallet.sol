@@ -53,3 +53,16 @@ contract SmartWallet {
         return signature.length > 0;
     }
 }
+
+// Paymaster contract to simulate gas sponsorship
+contract Paymaster {
+    // Event to log when gas is sponsored
+    event GasSponsored(address indexed wallet, uint256 gasUsed);
+
+    // Function to simulate sponsoring gas for a wallet
+    function sponsorGas(address wallet, uint256 gasUsed) external {
+        // In practice, this would check conditions (e.g., token balance) before sponsoring
+        // Here, it simply logs the sponsorship event
+        emit GasSponsored(wallet, gasUsed);
+    }
+}
