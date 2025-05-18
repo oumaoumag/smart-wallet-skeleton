@@ -87,5 +87,16 @@ contract SmartWalletTest is Test {
         assertEq(wallet.nonce(), 1);
     }
     
-   
+    function test_ExecuteBatchRevertNonOwner() public {
+        address[] memory targets = new address[](1);
+        uint256[] memory values = new uint256[](1);
+        bytes[] memory callData = new bytes[](1);
+        
+        // Try to execute as non-owner
+        vm.prank(nonOwner);
+        vm.expectRevert("Only Owner can execute");
+        wallet.executeBatch(targets, values, callData);
+    }
+    
+    
 }
