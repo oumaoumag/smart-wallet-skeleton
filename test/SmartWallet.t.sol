@@ -11,6 +11,10 @@ contract MockContract {
         value = _value;
     }
     
+    function revertCall() external pure {
+        revert("Mock revert");
+    }
+    
     receive() external payable {}
 }
 
@@ -29,37 +33,59 @@ contract SmartWalletTest is Test {
         mockContract = new MockContract();
     }
 
+    // Test the constructor
+    function test_Constructor() public {
+        assertEq(wallet.owner(), owner);
+        assertEq(wallet.nonce(), 0);
+    }
+
+    // Test execute function
     function test_Execute() public {
-        // Prepare call data for the mock contract
         bytes memory callData = abi.encodeWithSelector(MockContract.setValue.selector, 42);
-        
-        // Fund the wallet
         vm.deal(address(wallet), 1 ether);
         
-        // Execute as owner
         vm.prank(owner);
         wallet.execute(address(mockContract), 0.1 ether, callData);
         
-        // Verify results
         assertEq(mockContract.value(), 42);
         assertEq(address(mockContract).balance, 0.1 ether);
         assertEq(wallet.nonce(), 1);
     }
     
+    // Test execute with zero value
+    function test_ExecuteZeroValue() public {
+        bytes memory callData = abi.encodeWithSelector(MockContract.setValue.selector, 42);
+        
+        vm.prank(owner);
+        wallet.execute(address(mockContract), 0, callData);
+        
+        assertEq(mockContract.value(), 42);
+        assertEq(address(mockContract).balance, 0);
+        assertEq(wallet.nonce(), 1);
+    }
+    
+    // Test execute revert for non-owner
     function test_ExecuteRevertNonOwner() public {
         bytes memory callData = abi.encodeWithSelector(MockContract.setValue.selector, 42);
         
-        // Try to execute as non-owner
         vm.prank(nonOwner);
         vm.expectRevert("Only Owner can execute");
         wallet.execute(address(mockContract), 0.1 ether, callData);
     }
     
+    // Test execute revert for insufficient funds
+    function test_ExecuteRevertInsufficientFunds() public {
+        bytes memory callData = abi.encodeWithSelector(MockContract.setValue.selector, 42);
+        
+        vm.prank(owner);
+        vm.expectRevert("Call failed");
+        wallet.execute(address(mockContract), 0.1 ether, callData);
+    }
+    
+    // Test executeBatch function
     function test_ExecuteBatch() public {
-        // Create a second mock contract
         MockContract mockContract2 = new MockContract();
         
-        // Prepare arrays for batch execution
         address[] memory targets = new address[](2);
         targets[0] = address(mockContract);
         targets[1] = address(mockContract2);
@@ -72,14 +98,11 @@ contract SmartWalletTest is Test {
         callData[0] = abi.encodeWithSelector(MockContract.setValue.selector, 42);
         callData[1] = abi.encodeWithSelector(MockContract.setValue.selector, 84);
         
-        // Fund the wallet
         vm.deal(address(wallet), 1 ether);
         
-        // Execute batch as owner
         vm.prank(owner);
         wallet.executeBatch(targets, values, callData);
         
-        // Verify results
         assertEq(mockContract.value(), 42);
         assertEq(mockContract2.value(), 84);
         assertEq(address(mockContract).balance, 0.1 ether);
@@ -87,25 +110,105 @@ contract SmartWalletTest is Test {
         assertEq(wallet.nonce(), 1);
     }
     
+    // Test executeBatch with empty batch
+    function test_ExecuteBatchEmpty() public {
+        address[] memory targets = new address[](0);
+        uint256[] memory values = new uint256[](0);
+        bytes[] memory callData = new bytes[](0);
+        
+        vm.prank(owner);
+        wallet.executeBatch(targets, values, callData);
+        
+        assertEq(wallet.nonce(), 1);
+    }
+    
+    // Test executeBatch revert for non-owner
     function test_ExecuteBatchRevertNonOwner() public {
         address[] memory targets = new address[](1);
         uint256[] memory values = new uint256[](1);
         bytes[] memory callData = new bytes[](1);
         
-        // Try to execute as non-owner
         vm.prank(nonOwner);
         vm.expectRevert("Only Owner can execute");
         wallet.executeBatch(targets, values, callData);
     }
     
+    // Test executeBatch revert for array length mismatch
     function test_ExecuteBatchRevertArrayMismatch() public {
         address[] memory targets = new address[](2);
         uint256[] memory values = new uint256[](1);
         bytes[] memory callData = new bytes[](2);
         
-        // Try to execute with mismatched array lengths
         vm.prank(owner);
         vm.expectRevert("Array lengths mismatch");
         wallet.executeBatch(targets, values, callData);
+    }
+    
+    // Test executeBatch with failing call
+    function test_ExecuteBatchWithFailingCall() public {
+        address[] memory targets = new address[](2);
+        targets[0] = address(mockContract);
+        targets[1] = address(mockContract);
+        
+        uint256[] memory values = new uint256[](2);
+        values[0] = 0;
+        values[1] = 0;
+        
+        bytes[] memory callData = new bytes[](2);
+        callData[0] = abi.encodeWithSelector(MockContract.setValue.selector, 42);
+        callData[1] = abi.encodeWithSelector(MockContract.revertCall.selector);
+        
+        vm.deal(address(wallet), 1 ether);
+        
+        vm.prank(owner);
+        vm.expectRevert("Call failed");
+        wallet.executeBatch(targets, values, callData);
+        
+        assertEq(wallet.nonce(), 0);
+    }
+    
+    // Test validateUserOp function
+    function test_ValidateUserOp() public {
+        SmartWallet.UserOperation memory op = SmartWallet.UserOperation({
+            to: address(mockContract),
+            value: 0,
+            data: abi.encodeWithSelector(MockContract.setValue.selector, 42),
+            nonce: 0
+        });
+        
+        bytes memory signature = abi.encodePacked("signature");
+        
+        bool isValid = wallet.validateUserOp(op, signature);
+        assertTrue(isValid);
+    }
+    
+    // Test validateUserOp with incorrect nonce
+    function test_ValidateUserOpIncorrectNonce() public {
+        SmartWallet.UserOperation memory op = SmartWallet.UserOperation({
+            to: address(mockContract),
+            value: 0,
+            data: abi.encodeWithSelector(MockContract.setValue.selector, 42),
+            nonce: 1
+        });
+        
+        bytes memory signature = abi.encodePacked("signature");
+        
+        bool isValid = wallet.validateUserOp(op, signature);
+        assertFalse(isValid);
+    }
+    
+    // Test validateUserOp with no signature
+    function test_ValidateUserOpNoSignature() public {
+        SmartWallet.UserOperation memory op = SmartWallet.UserOperation({
+            to: address(mockContract),
+            value: 0,
+            data: abi.encodeWithSelector(MockContract.setValue.selector, 42),
+            nonce: 0
+        });
+        
+        bytes memory signature = "";
+        
+        bool isValid = wallet.validateUserOp(op, signature);
+        assertFalse(isValid);
     }
 }
